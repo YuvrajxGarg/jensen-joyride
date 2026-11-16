@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>Jensen Joyride · a parody runner</title>
+  <meta name="description" content="A parody jetpack runner. Fly through HQ, collect chips, dodge export bans and subpoenas, and outvote the board." />
+  <meta name="theme-color" content="#f2eee3" />
+  <meta property="og:title" content="Jensen Joyride" />
+  <meta property="og:description" content="A parody jetpack runner. Collect chips, dodge subpoenas, outvote the board." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23141414'/%3E%3Crect x='8' y='8' width='16' height='16' rx='2' fill='%23ffc93c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Geist:wght@400;500;600;700&family=Unbounded:wght@500;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="on-title">
+  <div id="stage">
+    <canvas id="game" aria-label="Jensen Joyride game"></canvas>
+
+    <!-- in-run HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-left">
+        <div class="hud-dist"><span id="dist">0</span><small>M</small></div>
+        <div class="hud-chips"><i class="chip-ico"></i><span id="chips">0</span></div>
+      </div>
+      <div class="hud-right">
+        <span class="parody-tag">Parody</span>
+        <button id="btn-pause" class="icon-btn" aria-label="Pause">II</button>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- title -->
+    <section id="scr-title" class="screen">
+      <div class="title-card">
+        <div class="kicker"><span class="parody-tag">Parody edition</span><span id="t-rank">Intern</span></div>
+        <h1 class="logo">Jensen<br /><span>Joyride</span></h1>
+        <p class="sub">Fly the jetpack through HQ. Grab chips, dodge export bans and subpoenas, and beat the bosses of the news cycle.</p>
+        <button id="btn-play" class="btn big">Play</button>
+        <p class="how"><kbd>Space</kbd> / click / hold the screen to fly</p>
+        <div class="stats-row">
+          <div><b id="t-best">0 m</b><span>Best</span></div>
+          <div><b id="t-bank">0</b><span>Chips</span></div>
+          <div><b id="t-done">0</b><span>Missions</span></div>
+        </div>
+        <div class="missions">
+          <h3>Missions</h3>
+          <ul id="t-missions"></ul>
+        </div>
+        <div class="row">
+          <button id="btn-wardrobe" class="btn ghost">Wardrobe</button>
+          <button id="btn-mute" class="btn ghost">Sound on</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- wardrobe -->
+    <section id="scr-wardrobe" class="screen hidden">
+      <div class="title-card">
+        <div class="kicker"><span>Wardrobe</span><span><i class="chip-ico"></i> <b id="w-bank">0</b></span></div>
+        <h2 class="h2">Pick a jacket</h2>
+        <div id="w-list" class="jackets"></div>
+        <button id="btn-wback" class="btn">Back</button>
+      </div>
+    </section>
+
+    <!-- pause -->
+    <section id="scr-pause" class="screen hidden">
+      <div class="title-card small">
+        <h2 class="h2">Paused</h2>
+        <ul id="p-missions" class="mlist"></ul>
+        <div class="row">
+          <button id="btn-resume" class="btn big">Resume</button>
+        </div>
+        <div class="row">
+          <button id="btn-pmute" class="btn ghost">Sound on</button>
+          <button id="btn-quit" class="btn ghost">Quit run</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- boss intro -->
+    <section id="scr-boss" class="banner hidden">
+      <div class="boss-card">
+        <span class="kicker-red">Boss fight</span>
+        <h2 id="b-name">THE BOARD</h2>
+        <p id="b-intro">The board has called a vote</p>
+        <p class="tip">Grab the <b>VOTE</b> ballots to fire them back</p>
+      </div>
+    </section>
+
+    <!-- golden parachute -->
+    <section id="scr-chute" class="screen hidden">
+      <div class="title-card small">
+        <div class="kicker"><span class="kicker-red">Downed</span><span id="c-cause"></span></div>
+        <h2 class="h2">Golden parachute?</h2>
+        <p class="sub">Keep flying from right here. Costs <b id="c-cost">300</b> chips.</p>
+        <div class="timer"><i id="c-bar"></i></div>
+        <div class="row">
+          <button id="btn-chute" class="btn big">Deploy</button>
+          <button id="btn-nochute" class="btn ghost">No thanks</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- results: a front page -->
+    <section id="scr-over" class="screen hidden">
+      <div class="paper">
+        <div class="paper-mast">
+          <span>The Joyride Times</span>
+          <span class="parody-tag">Parody</span>
+        </div>
+        <h2 id="o-head" class="headline">JENSEN FLIES 0 M</h2>
+        <p id="o-deck" class="deck"></p>
+        <div class="stats-row">
+          <div><b id="o-dist">0 m</b><span id="o-best">Best 0 m</span></div>
+          <div><b id="o-chips">0</b><span>Chips</span></div>
+          <div><b id="o-boss">0</b><span>Bosses</span></div>
+        </div>
+        <ul id="o-missions" class="mlist"></ul>
+        <div class="row">
+          <button id="btn-again" class="btn big">Fly again</button>
+        </div>
+        <div class="row">
+          <button id="btn-share" class="btn ghost">Share</button>
+          <button id="btn-menu" class="btn ghost">Menu</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="rotate" class="rotate hidden">Turn your phone sideways for the full HQ</div>
+  </div>
+
+  <div id="ticker" class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker-track"></div></div>
+
+  <footer class="disclaimer">
+    Parody game. A cartoon caricature of a public figure, built on public news reports about a company boardroom story.
+    Not affiliated with or endorsed by any person or company. All names of events are satire; nothing here is a claim of fact.
+  </footer>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
